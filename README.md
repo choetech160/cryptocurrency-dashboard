@@ -112,8 +112,14 @@ http://your-nas-address:8050
 - [ ] Add a verification when buying multiple time the same currency
     - [ ] Verify if assets exist and if yes, then add crypto_quantity altogether and add to the "average cost" column
     - [ ] Add a column to the purchase_history_table to calculate the average value of purchase
-- [ ] Create a title :
+- [x] Create a title :
 ```
 			you have 25000$
 			200$ in returns
 ```
+- [x] Add a column to the UI-table to show growth/loss in $
+        It is also possible to modify the growth time (last 7 days, month etc)
+- [x] Create a debug flag. It can be activated/desactivated by setting DEBUG_FLAG in
+        db_operations.py as True or False. Output is in console
+- [ ] There is a difference between tab1 and tab2 [total per asset] vs [historical data]. This seems to be caused by the fact the data are picked from different API (yahoo vs coinmarketcap) at the first time. If the get_data timer works properly, this should resolve by itself as the coinmarketcap data is put into both tables, thus will start using the same data
+- [x] Add pagination to the purchase_history_table table.
