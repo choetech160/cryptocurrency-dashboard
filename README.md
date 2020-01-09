@@ -7,8 +7,8 @@ and their current values.
 The project was highly inspired by this other project from [elpunk project](https://github.com/elpunkt/coin-dashboard)
 
 
-![Image of tab 1](https://github.com/choetech160/cryptocurrency-dashboard/tab_1.png)
-![Image of tab 2](https://github.com/choetech160/cryptocurrency-dashboard/tab_2.png)
+![Image of tab 1](tab_1.png)  
+![Image of tab 2](tab_2.png)  
 
 
 
@@ -75,13 +75,14 @@ You need to modify some parameters in there. The first 6 not-commented lines.
 ```python
 start_date=datetime.datetime(2018,1,3)
 end_date=datetime.datetime(2020,1,10) => todays date
-tickers=['BTC-CAD']                   => If you bought multiple one on the same date, you can create a list such as : tickers=['ETH-CAD','BTC-CAD']
-data[0]='Bitcoin'                     => currency long name
-data[1]='BTC'                         => currency symbol or short name
+tickers=['BTC-CAD','XRP-CAD']         => Tickers you got in your folio
+short_name=['BTC', 'XRP']             => currency long name
+long_name=['Bitcoin', 'XRP']          => currency symbol or short name
 ```
+
 Here, if you selected USD or AUD previously in the `convert` parameter. I would advise to not use the canadian ticker. BTC-AUD and BTC-USD exists
 The last two parameters can be tricky. They are of no importance right now, but later
-they will be read to retrieve the latest data from coinmarketcap API. Thus, they have to match what they have.
+they will be read to retrieve the latest data from coinmarketcap API. Thus, they have to match what they have.  
 2.   Run the function  
 ```
 python3
