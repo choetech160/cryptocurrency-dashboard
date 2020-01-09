@@ -6,6 +6,12 @@ and their current values.
 
 The project was highly inspired by this other project from [elpunk project](https://github.com/elpunkt/coin-dashboard)
 
+
+![Image of tab 1](https://github.com/choetech160/cryptocurrency-dashboard/tab_1.png)
+![Image of tab 2](https://github.com/choetech160/cryptocurrency-dashboard/tab_2.png)
+
+
+
 The data is retrieve in two manners :
 1. The historical data is retrieve through the yahoo api. There have been some issues with it in the past
 2. The latest data (today) are retrieve throught the coinmarketcap API.
@@ -57,13 +63,13 @@ You can also modify the `convert` value to AUD or USD if you prefer.
 
 ## Installing
 You need to create the sqlite database tables.
-For this, there is some manual work. sorry  ¯\_(ツ)_/¯
+For this, there is some manual work. sorry ¯\_(ツ)_/¯
 
 I left you a sample database so you can test it right away and figure out
 if you miss dependencies or anything else.  
 
 To get your historical data, in an hypothetical case where you bought BTC on 3rd of January 2018, do the following in the project folder :
-1. Modify the function.
+1. Modify the function.  
 Go into `db_operations.py`.  At the end of the file, there is a function named `Create_Historical_data()`.
 You need to modify some parameters in there. The first 6 not-commented lines.
 ```python
@@ -76,7 +82,7 @@ data[1]='BTC'                         => currency symbol or short name
 Here, if you selected USD or AUD previously in the `convert` parameter. I would advise to not use the canadian ticker. BTC-AUD and BTC-USD exists
 The last two parameters can be tricky. They are of no importance right now, but later
 they will be read to retrieve the latest data from coinmarketcap API. Thus, they have to match what they have.
-2.   Run the function
+2.   Run the function  
 ```
 python3
 import db_operations
@@ -112,6 +118,8 @@ http://your-nas-address:8050
 - [ ] Add a verification when buying multiple time the same currency
     - [ ] Verify if assets exist and if yes, then add crypto_quantity altogether and add to the "average cost" column
     - [ ] Add a column to the purchase_history_table to calculate the average value of purchase
+- [ ] There is a difference between tab1 and tab2 [total per asset] vs [historical data]. This seems to be caused by the fact the data are picked from different API (yahoo vs coinmarketcap) at the first time. If the get_data timer works properly, this should resolve by itself as the coinmarketcap data is put into both tables, thus will start using the same data
+
 - [x] Create a title :
 ```
 			you have 25000$
@@ -121,5 +129,4 @@ http://your-nas-address:8050
         It is also possible to modify the growth time (last 7 days, month etc)
 - [x] Create a debug flag. It can be activated/desactivated by setting DEBUG_FLAG in
         db_operations.py as True or False. Output is in console
-- [ ] There is a difference between tab1 and tab2 [total per asset] vs [historical data]. This seems to be caused by the fact the data are picked from different API (yahoo vs coinmarketcap) at the first time. If the get_data timer works properly, this should resolve by itself as the coinmarketcap data is put into both tables, thus will start using the same data
 - [x] Add pagination to the purchase_history_table table.
