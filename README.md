@@ -120,7 +120,7 @@ http://your-nas-address:8050
     - [ ] Verify if assets exist and if yes, then add crypto_quantity altogether and add to the "average cost" column
     - [ ] Add a column to the purchase_history_table to calculate the average value of purchase
 - [ ] There is a difference between tab1 and tab2 [total per asset] vs [historical data]. This seems to be caused by the fact the data are picked from different API (yahoo vs coinmarketcap) at the first time. If the get_data timer works properly, this should resolve by itself as the coinmarketcap data is put into both tables, thus will start using the same data
-
+- [ ] When modifying the price variation time, modify also the x-axis of the historical tab to reflect the time
 - [x] Create a title :
 ```
 			you have 25000$
