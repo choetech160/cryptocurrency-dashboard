@@ -7,7 +7,7 @@ import pandas as pd # for the chart
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime as dt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from threading import Timer
 import db_operations
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -17,11 +17,8 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 # BitCoin    |  2  |   7680       |  2019-08-20T23:28:06.190Z
 # cardano    | 500 |   0.04       |  2019-08-20T23:28:06.190Z
 
-write_to_database_list=['currency_name_long','quantity','price_bought', 'date_column']
-currency_name_long_L = 0
-quantity_L = 1
-price_bought_L = 2
-timestamp_L = 3
+long_name_crypto_name_list=['Bitcoin', 'XRP', 'Monero', 'Cardano']
+short_name_crypto_name_list=['BTC','XRP','XMR','ADA']
 #chart data:
 df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/solar.csv')
 graph_colors = ["#9962D1", "#5FDDBD", "#C96652", "#6791D3"]
@@ -140,6 +137,7 @@ def generate_piechart():
             i=0
     values=[]
     values=[c*d for c,d in zip(values_crypto_qty,values_price_per_coin)]
+    print("GENERATE_PIECHART [values] ", values)
 
     return dcc.Graph(
         id="piechart",
@@ -203,6 +201,7 @@ def total_folio_value():
     if sum(total_profit_list) > 0:
         finalline="Up "+str(total_profit)
     else:
+        total_profit="{0:.2f}".format(-1*sum(total_profit_list))
         finalline="Down "+str(total_profit)
 
     return html.Div(children=[
@@ -314,6 +313,9 @@ app.layout = html.Div(style={'backgroundColor':colors['background']}, children=[
             ),
         ]),
     ]), # whole bottom line for a title - end
+
+
+
     html.Div( # new row under title
         id="bottom_row_2",
         className="row",
@@ -327,9 +329,9 @@ app.layout = html.Div(style={'backgroundColor':colors['background']}, children=[
                         dcc.Dropdown(
                             id="currency_picker",
                             options=[
-                                {'label': 'BitCoin [BTC]','value':'BTC'},
-                                {'label': 'Ripple [XRP]', 'value': 'XRP'},
-                                {'label': 'Cardano [ADA]','value': 'ADA'}
+                                {'label': 'BitCoin [BTC]','value':short_name_crypto_name_list[0]},
+                                {'label': 'Ripple [XRP]', 'value': short_name_crypto_name_list[1]},
+                                {'label': 'Cardano [ADA]','value': short_name_crypto_name_list[3]}
                             ],placeholder="Select a currency",
                         ),
                         #html.Div(id='currency-dropdown-output-container'),
@@ -374,8 +376,13 @@ app.layout = html.Div(style={'backgroundColor':colors['background']}, children=[
                 id="left_final_row",
                 className="four columns",
                 children=[
-                    html.Div(html.Button('Save to database', id='save-to-database-button')),
-                    #html.Div(id='submit-form-output', children="Submit to add transaction to database")
+                    html.Div([
+                    dcc.ConfirmDialogProvider(
+                        children=html.Button('Save to database'),
+                        id='save-to-database-button',
+                        message='This will be saved to the database. Sure?',
+                        )
+                    ]),
                 ],
                 style={
                     'textAlign':'center',
@@ -383,49 +390,76 @@ app.layout = html.Div(style={'backgroundColor':colors['background']}, children=[
                     'backgroundColor':colors['background_element']
                     }
             )],
+    ),
+    html.Div(
+        id='new_purchase_status',
+        style={
+            'textAlign':'center',
+            'color':colors['yellow'],
+            'backgroundColor':colors['background_element']
+            }
     )
 ])
+
 
 @app.callback(
 # to DOS
     # https://community.plot.ly/t/multiple-outputs-in-dash-now-available/19437
-        [],
-        [dash.dependencies.Input('save-to-database-button', 'n_clicks'),
-        dash.dependencies.Input('currency_picker', 'value')
+        [dash.dependencies.Output('new_purchase_status', 'children')
         ],
-        [dash.dependencies.State('acquisition-price-box','value'),
-        dash.dependencies.State('amount-acquired-box','value')])
-def update_output(submit_to_db_button, currency_picker, acquisition_price_input, amount_acquired_input):
+        [dash.dependencies.Input('save-to-database-button', 'submit_n_clicks')],
+        [dash.dependencies.State('currency_picker', 'value'),
+        dash.dependencies.State('date-picker-single', 'date'),
+        dash.dependencies.State('acquisition-price-box','value'),
+        dash.dependencies.State('amount-acquired-box','value')]
+        )
+def update_output(submit_to_db_button, currency_picker, date,acquisition_price_input, amount_acquired_input):
     global write_to_database_list
-    if date is not None:
-        #YYYY-MM-DDTHH:MM:SS
-        #yyyy-MM-dd'T'HH:mm:ss.SSS'Z' from : https://help.sumologic.com/03Send-Data/Sources/04Reference-Information-for-Sources/Timestamps%2C-Time-Zones%2C-Time-Ranges%2C-and-Date-Formats
-        #2019-12-20T23:28:06.190Z
-        if db_operations.DEBUG_FLAG is True: print("update_output [date is] : ",date)
-        try:
-            date=datetime.datetime.strptime(date, "%Y-%m-%d")
-        except:
-            date=datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S")
-        date_string = date.strftime('%Y-#-#T')
-        date_string = date.strftime('%B %d, %Y')
+    if submit_to_db_button:
+        if date is not None:
+            #YYYY-MM-DDTHH:MM:SS
+            #yyyy-MM-dd'T'HH:mm:ss.SSS'Z' from : https://help.sumologic.com/03Send-Data/Sources/04Reference-Information-for-Sources/Timestamps%2C-Time-Zones%2C-Time-Ranges%2C-and-Date-Formats
+            #2019-12-20T23:28:06.190Z
+            if db_operations.DEBUG_FLAG is True: print("update_output [date is] : ",date)
+            try:
+                date=datetime.strptime(str(date), "%Y-%m-%d")
+            except:
+                date=datetime.strptime(str(date), "%Y-%m-%dT%H:%M:%S")
+            date_string = date.strftime('%Y-#-#T')
+            date_string = date.strftime('%B %d %Y')
 
-    if submit_to_db_button is not None:
-        write_to_database_list[currency_name_long_L]=currency_picker
-        write_to_database_list[quantity_L]=amount_acquired_input
-        write_to_database_list[price_bought_L]=acquisition_price_input
-        write_to_database_list[timestamp_L]=date_string
-        if db_operations.DEBUG_FLAG is True: print("=========================================")
-        if db_operations.DEBUG_FLAG is True: print("list: ", write_to_database_list)
-        if db_operations.DEBUG_FLAG is True: print("=========================================")
 
-    if db_operations.DEBUG_FLAG is True: print("---------------------------------")
-    if db_operations.DEBUG_FLAG is True: print("update_output [submit_button] : ", submit_to_db_button)
-    if db_operations.DEBUG_FLAG is True: print("update_output [date] : ",date_string)
-    if db_operations.DEBUG_FLAG is True: print("update_output [currency_picker]: ",currency_picker)
-    if db_operations.DEBUG_FLAG is True: print("update_output [input_box]  : ",acquisition_price_input) # currency price
-    if db_operations.DEBUG_FLAG is True: print("update_output [input_box2] : ",amount_acquired_input) # quantity acquired
-    if db_operations.DEBUG_FLAG is True: print("---------------------------------")
-    return date_string
+            if submit_to_db_button is not None:
+                columns=['currency_name_long', 'currency_name_short', 'CAD_price_at_purchase','CAD_price_latest','quantity_of_currency_acquired','acquisition_date', 'price_variation']
+                data=['str','str', 0.0,0.0,'str'] #init the list with elements as they might get modified not orderly
+                id=short_name_crypto_name_list.index(currency_picker)
+                currency_long_name=long_name_crypto_name_list[id]
+                data=[currency_long_name,currency_picker,float(acquisition_price_input),0.0,float(amount_acquired_input),date_string, 0.0]
+                #Get current currency in list before adding the new one
+                current_currency_list=db_operations.query_database('purchase_history_table', ['currency_name_short'], False, None)
+                print(data)
+                db_operations.write_to_database('purchase_history_table', columns, data)
+
+
+
+
+            #ADD IF CURRENCY_NAME_LONG NOT IN purchase_history_table, THEN GET HISTORICAL DATA SINCE ACQUISITION DATE
+            #current_currency_list=db_operations.query_database('purchase_history_table', ['currency_name_short'], False, None)
+            print("update_output [currency_list]", current_currency_list)
+            if currency_picker not in current_currency_list:
+                #get historical data
+                ticker=currency_picker+'-'+db_operations.parameters['convert']
+                #today = date.today()
+                #end_date = date(today.year, today.month, today.day)
+                end_date=date.today()
+                print("update_output [currency_list]", ticker)
+                db_operations.Get_Historical_data(ticker, currency_picker, currency_long_name, date_string,end_date)
+
+
+            return ['The purchase of {} {} for {} $ on {} has successfully been added to the database. Please reload the page.'.format(amount_acquired_input, currency_picker, acquisition_price_input, date_string)]
+
+    else:
+        return ['']
 
 @app.callback(Output('tabs-content-example','children'),
             [Input('tabs-exemple', 'value')])
