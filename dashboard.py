@@ -9,6 +9,9 @@ import plotly.graph_objects as go
 from datetime import datetime as dt
 from datetime import datetime, timedelta, date
 from threading import Timer
+import _thread
+import time
+
 import db_operations
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -112,12 +115,6 @@ date_picker_style = {
     'textAlign': '1.5rem'
 }
 
-x=datetime.today()
-y = x.replace(day=x.day, hour=11, minute=0, second=0, microsecond=0) + timedelta(days=1)
-delta_t=y-x
-secs=delta_t.total_seconds()
-def add_data_to_table():
-    db_operations.get_data()
 
 
 def generate_section_banner(title):
@@ -137,7 +134,7 @@ def generate_piechart():
             i=0
     values=[]
     values=[c*d for c,d in zip(values_crypto_qty,values_price_per_coin)]
-    print("GENERATE_PIECHART [values] ", values)
+    if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] GENERATE_PIECHART [ values ]  :",values)
 
     return dcc.Graph(
         id="piechart",
@@ -189,12 +186,12 @@ def total_folio_value():
     total_coin=db_operations.query_database('purchase_history_table', ['quantity_of_currency_acquired'], False, None)
     profit=[value_latest_i - value_purchase_i for value_latest_i, value_purchase_i in zip(value_latest, value_purchase)]
     for id, column in enumerate(value_latest):
-        if db_operations.DEBUG_FLAG is True: print("total_folio_value []: ID: ",id," value: ",column," real value: ",value_latest[id]*total_coin[id], " Gain: ",profit[id]*total_coin[id])
+        if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] total_folio_value []: ID: ",id," value: ",column," real value: ",value_latest[id]*total_coin[id], " Gain: ",profit[id]*total_coin[id])
         total_asset_list.append(value_latest[id]*total_coin[id])
         total_profit_list.append(profit[id]*total_coin[id])
 
-    if db_operations.DEBUG_FLAG is True: print("total_folio_value []: Total profits: ",sum(total_profit_list))
-    if db_operations.DEBUG_FLAG is True: print("total_folio_value []: Total value  : ",sum(total_asset_list))
+    if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] total_folio_value []: Total profits: ",sum(total_profit_list))
+    if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] total_folio_value []: Total value  : ",sum(total_asset_list))
     total_asset="{0:.2f}".format(sum(total_asset_list))
     total_profit="{0:.2f}".format(sum(total_profit_list))
     secondline="You have "+str(total_asset)
@@ -420,7 +417,7 @@ def update_output(submit_to_db_button, currency_picker, date,acquisition_price_i
             #YYYY-MM-DDTHH:MM:SS
             #yyyy-MM-dd'T'HH:mm:ss.SSS'Z' from : https://help.sumologic.com/03Send-Data/Sources/04Reference-Information-for-Sources/Timestamps%2C-Time-Zones%2C-Time-Ranges%2C-and-Date-Formats
             #2019-12-20T23:28:06.190Z
-            if db_operations.DEBUG_FLAG is True: print("update_output [date is] : ",date)
+            if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] update_output [date is] : ",date)
             try:
                 date=datetime.strptime(str(date), "%Y-%m-%d")
             except:
@@ -437,7 +434,6 @@ def update_output(submit_to_db_button, currency_picker, date,acquisition_price_i
                 data=[currency_long_name,currency_picker,float(acquisition_price_input),0.0,float(amount_acquired_input),date_string, 0.0]
                 #Get current currency in list before adding the new one
                 current_currency_list=db_operations.query_database('purchase_history_table', ['currency_name_short'], False, None)
-                print(data)
                 db_operations.write_to_database('purchase_history_table', columns, data)
 
 
@@ -445,14 +441,14 @@ def update_output(submit_to_db_button, currency_picker, date,acquisition_price_i
 
             #ADD IF CURRENCY_NAME_LONG NOT IN purchase_history_table, THEN GET HISTORICAL DATA SINCE ACQUISITION DATE
             #current_currency_list=db_operations.query_database('purchase_history_table', ['currency_name_short'], False, None)
-            print("update_output [currency_list]", current_currency_list)
+            if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] UPDATA_OUTPUT [ CURRENCY LIST ]  :",current_currency_list)
             if currency_picker not in current_currency_list:
                 #get historical data
                 ticker=currency_picker+'-'+db_operations.parameters['convert']
                 #today = date.today()
                 #end_date = date(today.year, today.month, today.day)
                 end_date=date.today()
-                print("update_output [currency_list]", ticker)
+                if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] UPDATA_OUTPUT [ CURRENCY LIST ]  :",ticker)
                 db_operations.Get_Historical_data(ticker, currency_picker, currency_long_name, date_string,end_date)
 
 
@@ -472,11 +468,11 @@ def render_content(tab):
         i=0
         bars_colors=[]
         for label in labels:
-            if db_operations.DEBUG_FLAG is True: print("render_content [label] : ",label)
+            if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] render_content [label] : ",label)
             quantity_of_currency=db_operations.query_database('purchase_history_table', ['quantity_of_currency_acquired'], False, label)
-            if db_operations.DEBUG_FLAG is True: print("render_content [quantity_of_currency] : ",quantity_of_currency)
+            if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] render_content [quantity_of_currency] : ",quantity_of_currency)
             CAD_price_latest=db_operations.query_database('purchase_history_table', ['CAD_price_latest'], False, label)
-            if db_operations.DEBUG_FLAG is True: print("render_content [CAD_price_latest] : ",CAD_price_latest)
+            if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] render_content [CAD_price_latest] : ",CAD_price_latest)
             y_value=quantity_of_currency[0]*CAD_price_latest[0]
             y_values.append("{0:.2f}".format(y_value))
             label_list.append(label)
@@ -581,8 +577,6 @@ def display_output(value, variation_time_period):
     [Input("selected_variation_price", "data"), Input("selected_columns", "data")],
 )
 def update_graph(variation_price, columns):
-    #print("UPODATE_GRAPH[var]: ",variation_price["selected_rows"])
-    #print("UPODATE_GRAPH [columns]: ",columns)
     if columns is None:
         if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] UPDATE_GRAPH None type detected")
         return
@@ -627,6 +621,18 @@ def update_graph(variation_price, columns):
     )
 
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', debug=True)
-    t = Timer(secs, add_data_to_table)
+    x=datetime.today()
+    y = x.replace(day=x.day, hour=1, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    delta_t=y-x
+    secs=delta_t.total_seconds()
+    t = Timer(secs, db_operations.get_data())
     t.start()
+    print('='*50)
+    print(x)
+    print(y)
+    print(delta_t)
+    print(secs)
+    print(t)
+    print('='*50)
+    while t.is_alive():
+        app.run_server(host='0.0.0.0', debug=True)
