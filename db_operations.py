@@ -3,7 +3,7 @@ import json
 from requests import Request, Session
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import datetime
-import dict_example
+#import dict_example
 
 import inspect # for debbuging, get code line number
 
@@ -24,11 +24,11 @@ headers = {
 parameters = {
   'start':'1',
   'limit':'20',
-  'convert':'CAD'
+  'convert':API_data.convert
 }
 # Database parameters
-sqlite_file='/Users/home/Desktop/Projets/local_dashboard/database.sqlite'
-#sqlite_file='/Users/temp/Desktop/Projects/dashboard/database_demo.sqlite'
+#sqlite_file='/Users/home/Desktop/Projets/local_dashboard/database.sqlite'
+sqlite_file='/Users/temp/Desktop/Projects/dashboard/database_demo.sqlite'
 historical_data_table='historical_data_table'
 purchase_history_table='purchase_history_table'
 

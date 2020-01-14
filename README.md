@@ -45,19 +45,11 @@ conda install -c anaconda pandas-datareader
 ```
 
 You will need an account on [coinmarketcap](https://pro.coinmarketcap.com/signup) and an api key (free) which you will copy-paste
-into db_operations.py here :
+into API_data.py here :
 
 ```python
-latest_url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
-headers = {
-  'Accepts': 'application/json',
-  'X-CMC_PRO_API_KEY': 'xxxx-xxxxx-your-api-goes-here-xxxxxx',
-}
-parameters = {
-  'start':'1',
-  'limit':'20',
-  'convert':'CAD'
-}
+api='xxxx-xxxx-your-api-xxx-xxxx'
+convert='CAD'
 ```
 You can also modify the `convert` value to AUD or USD if you prefer.
 
@@ -123,6 +115,7 @@ http://your-nas-address:8050
 - [ ] When modifying the price variation time, modify also the x-axis of the historical tab to reflect the time
 - [x] Create a title :
 ```
+      WELCOME
 			you have 25000$
 			200$ in returns
 ```
