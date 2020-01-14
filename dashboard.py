@@ -11,9 +11,9 @@ from datetime import datetime, timedelta, date
 from threading import Timer
 import _thread
 import time
-
 import db_operations
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+
+#external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 # ------   purchase_history_table   ------
 # cnl_column | qty | price_bought | date_column
