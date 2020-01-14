@@ -115,7 +115,7 @@ http://your-nas-address:8050
 - [ ] When modifying the price variation time, modify also the x-axis of the historical tab to reflect the time
 - [x] Create a title :
 ```
-      WELCOME
+			WELCOME
 			you have 25000$
 			200$ in returns
 ```
