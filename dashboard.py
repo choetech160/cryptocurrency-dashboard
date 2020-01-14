@@ -504,6 +504,7 @@ def render_content(tab):
         y_values=[]
         label_list=[]
         bar_colors=[]
+        times=['7 day', '1 month', '6 months', 'All']
         for label in labels:
             results=db_operations.query_database('historical_data_table', ['timestamp_strftime'], False, label)
             for result in results:
@@ -622,10 +623,10 @@ def update_graph(variation_price, columns):
 
 if __name__ == '__main__':
     x=datetime.today()
-    y = x.replace(day=x.day, hour=1, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    y = x.replace(day=x.day, hour=6, minute=0, second=0, microsecond=0) + timedelta(days=0)
     delta_t=y-x
     secs=delta_t.total_seconds()
-    t = Timer(secs, db_operations.get_data())
+    t = Timer(secs, db_operations.get_data,)
     t.start()
     print('='*50)
     print(x)
