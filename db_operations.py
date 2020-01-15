@@ -2,13 +2,13 @@ import sqlite3
 import json
 from requests import Request, Session
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
-import datetime
-#import dict_example
+import dict_example
 
 import inspect # for debbuging, get code line number
 
 # ONLY USED FOR Create_Historical_data [CAN BE COMMENTED ONCE YOU GOT THE HISTORICAL DATA]
 import pandas_datareader.data as web
+from datetime import datetime, timedelta
 import datetime
 import pandas as pd
 import API_data
@@ -27,8 +27,8 @@ parameters = {
   'convert':API_data.convert
 }
 # Database parameters
-#sqlite_file='/Users/home/Desktop/Projets/local_dashboard/database.sqlite'
-sqlite_file='/Users/temp/Desktop/Projects/dashboard/database_demo.sqlite'
+sqlite_file='/Users/home/Desktop/Projets/local_dashboard/database.sqlite'
+#sqlite_file='/Users/temp/Desktop/Projects/dashboard/database_demo.sqlite'
 historical_data_table='historical_data_table'
 purchase_history_table='purchase_history_table'
 
@@ -252,7 +252,8 @@ def get_price_variation(variation_period):
             today = datetime.date.today()
             a = datetime.datetime.strptime(variation_period_value[0], date_format_from_db) #['November 11 2019']
             b = datetime.datetime.strptime(str(datetime.date.today()),"%Y-%m-%d")
-            delta = b - a
+            delta = (b - a)+timedelta(days=1)  # needed to somehow substract 1 day to get the purchase date appropriatelly. If there are still descrepancies between the tables and the welcome message,
+            # this might be the reason
             variation_period_value="-"+str(delta.days)+" day"
             if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [variation period]: ", variation_period_value)
         else:
@@ -268,6 +269,7 @@ def get_price_variation(variation_period):
         variation_price = c.fetchall()
         try:
             variation_price=variation_price[0][0]
+            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", variation_price)
         except:
             variation_period_value=query_database('purchase_history_table',['acquisition_date'], False, currency_symbol)
             date_format_from_db = "%B %d %Y"
@@ -280,19 +282,30 @@ def get_price_variation(variation_period):
             c.execute(command)
             variation_price=c.fetchall()
             variation_price=variation_price[0][0]
+            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", variation_price)
 
         # Get latest price
         command="SELECT CAD_price FROM historical_data_table WHERE timestamp_strftime IS strftime('%Y-%m-%d','now') AND currency_name_short LIKE '"+currency_symbol+"'"
         if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [SQLITE COMMAND]: ", command)
         c.execute(command)
         latest_price = c.fetchall()
-        latest_price=latest_price[0][0]
+        try:
+            latest_price=latest_price[0][0]
+            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", latest_price)
+        except:
+            command="SELECT CAD_price FROM historical_data_table WHERE timestamp_strftime IS strftime('%Y-%m-%d','now','-1 day') AND currency_name_short LIKE '"+currency_symbol+"'"
+            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [SQLITE COMMAND]: ", command)
+            c.execute(command)
+            latest_price = c.fetchall()
+            latest_price=latest_price[0][0]
+            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", latest_price)
 
         command="SELECT quantity_of_currency_acquired FROM purchase_history_table WHERE currency_name_short LIKE '"+currency_symbol+"'"
         if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [SQLITE COMMAND]: ", command)
         c.execute(command)
         qty_acquired = c.fetchall()
         qty_acquired=qty_acquired[0][0]
+        if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", qty_acquired)
         if DEBUG_FLAG is True: print('-'*200)
         if DEBUG_FLAG is True: print("[",lineno(),"] Currency: ",currency_symbol)
         if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [latest_price]: ",latest_price)
@@ -310,6 +323,8 @@ def get_price_variation(variation_period):
     return
 
 def Get_Historical_data(ticker, short_name, long_name, start_date, end_date):
+    # used when buying a new currency to retrieve historical data if it was purchase in the past
+
     data=['str','str',0.0,'str', 'str']
     data[0]=long_name
     data[1]=short_name

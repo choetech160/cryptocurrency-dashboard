@@ -11,8 +11,8 @@ from datetime import datetime, timedelta, date
 from threading import Timer
 import _thread
 import time
-import db_operations
 
+import db_operations
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 # ------   purchase_history_table   ------
@@ -182,11 +182,16 @@ def total_folio_value():
     total_asset_list=[]
     total_profit_list=[]
     value_latest=db_operations.query_database('purchase_history_table', ['CAD_price_latest'], False, None)
+    print("Value latest: ", value_latest)
     value_purchase=db_operations.query_database('purchase_history_table', ['CAD_price_at_purchase'], False, None)
+    print("Value value_purchase: ", value_purchase)
     total_coin=db_operations.query_database('purchase_history_table', ['quantity_of_currency_acquired'], False, None)
+    print("Value latest: ", total_coin)
+
     profit=[value_latest_i - value_purchase_i for value_latest_i, value_purchase_i in zip(value_latest, value_purchase)]
+    print("Value profits: ", profit)
     for id, column in enumerate(value_latest):
-        if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] total_folio_value []: ID: ",id," value: ",column," real value: ",value_latest[id]*total_coin[id], " Gain: ",profit[id]*total_coin[id])
+        if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] total_folio_value []: ID: ",id," value: ",column," latest value ",value_latest[id]," value fluctuation ",profit[id]," portfolio value: ",value_latest[id]*total_coin[id], " folio Gain: ",profit[id]*total_coin[id])
         total_asset_list.append(value_latest[id]*total_coin[id])
         total_profit_list.append(profit[id]*total_coin[id])
 
@@ -623,7 +628,7 @@ def update_graph(variation_price, columns):
 
 if __name__ == '__main__':
     x=datetime.today()
-    y = x.replace(day=x.day, hour=6, minute=0, second=0, microsecond=0) + timedelta(days=0)
+    y = x.replace(day=x.day, hour=6, minute=0, second=0, microsecond=0) + timedelta(days=1)
     delta_t=y-x
     secs=delta_t.total_seconds()
     t = Timer(secs, db_operations.get_data,)
