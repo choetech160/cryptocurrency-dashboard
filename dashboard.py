@@ -23,7 +23,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 long_name_crypto_name_list=['Bitcoin', 'XRP', 'Monero', 'Cardano']
 short_name_crypto_name_list=['BTC','XRP','XMR','ADA']
 #chart data:
-df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/solar.csv')
+#df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/solar.csv')
 graph_colors = ["#9962D1", "#5FDDBD", "#C96652", "#6791D3"]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
@@ -627,18 +627,4 @@ def update_graph(variation_price, columns):
     )
 
 if __name__ == '__main__':
-    # x=datetime.today()
-    # y = x.replace(day=x.day, hour=6, minute=0, second=0, microsecond=0) + timedelta(days=1)
-    # delta_t=y-x
-    # secs=delta_t.total_seconds()
-    # t = Timer(secs, db_operations.get_data,)
-    # t.start()
-    # print('='*50)
-    # print(x)
-    # print(y)
-    # print(delta_t)
-    # print(secs)
-    # print(t)
-    # print('='*50)
-    while t.is_alive():
-        app.run_server(host='0.0.0.0', debug=True)
+    app.run_server(host='0.0.0.0', debug=True)
