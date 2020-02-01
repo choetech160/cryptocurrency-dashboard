@@ -265,22 +265,29 @@ def get_price_variation(variation_period):
         if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [SQLITE COMMAND]: ", command)
         c.execute(command)
         variation_price = c.fetchall()
-        try:
+        if len(variation_price) > 0:
+            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [VARIATION PRICE]: ", variation_price)
             variation_price=variation_price[0][0]
-            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", variation_price)
-        except:
+            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [VARIATION PRICE]: ", variation_price)
+        else:
             variation_period_value=query_database('purchase_history_table',['acquisition_date'], False, currency_symbol)
             date_format_from_db = "%B %d %Y"
             today = datetime.date.today()
             a = datetime.datetime.strptime(variation_period_value[0], date_format_from_db) #['November 11 2019']
             b = datetime.datetime.strptime(str(datetime.date.today()),"%Y-%m-%d")
             delta = b - a
-            variation_period_value="-"+str(delta.days)+" day"
-            command="SELECT CAD_price FROM historical_data_table WHERE timestamp_strftime IS strftime('%Y-%m-%d','now', '"+str(variation_period_value)+"') AND currency_name_short LIKE '"+currency_symbol+"'"
-            c.execute(command)
-            variation_price=c.fetchall()
-            variation_price=variation_price[0][0]
-            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", variation_price)
+            for test_days in range(0,5):
+                try:
+                    variation_period_value="-"+str(delta.days-test_days)+" day"
+                    print(variation_period_value)
+                    command="SELECT CAD_price from historical_data_table where timestamp_strftime is strftime('%Y-%m-%d', 'now', '"+str(variation_period_value)+"') AND currency_name_short LIKE '"+currency_symbol+"'"
+                    if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", command)
+                    c.execute(command)
+                    variation_price=c.fetchall()
+                    variation_price=variation_price[0][0]
+
+                except:
+                    if DEBUG_FLAG is True: print("[",lineno(),"] ERROR, data does not exit, looking further in the past")
 
         # Get latest price
         command="SELECT CAD_price FROM historical_data_table WHERE timestamp_strftime IS strftime('%Y-%m-%d','now') AND currency_name_short LIKE '"+currency_symbol+"'"
@@ -291,12 +298,19 @@ def get_price_variation(variation_period):
             latest_price=latest_price[0][0]
             if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", latest_price)
         except:
-            command="SELECT CAD_price FROM historical_data_table WHERE timestamp_strftime IS strftime('%Y-%m-%d','now','-1 day') AND currency_name_short LIKE '"+currency_symbol+"'"
-            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [SQLITE COMMAND]: ", command)
-            c.execute(command)
-            latest_price = c.fetchall()
-            latest_price=latest_price[0][0]
-            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", latest_price)
+            test_days=0
+            for test_days in range(0,10):
+                try:
+                    days=-1-test_days
+                    command="SELECT CAD_price FROM historical_data_table WHERE timestamp_strftime IS strftime('%Y-%m-%d','now','"+str(days)+" day') AND currency_name_short LIKE '"+currency_symbol+"'"
+                    if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [SQLITE COMMAND]: ", command)
+                    c.execute(command)
+                    latest_price = c.fetchall()
+                    latest_price=latest_price[0][0]
+                    if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", latest_price)
+                    break
+                except:
+                    if DEBUG_FLAG is True: print("[",lineno(),"] ERROR, data does not exit, looking further in the past")
 
         command="SELECT quantity_of_currency_acquired FROM purchase_history_table WHERE currency_name_short LIKE '"+currency_symbol+"'"
         if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [SQLITE COMMAND]: ", command)
