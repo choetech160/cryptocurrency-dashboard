@@ -372,7 +372,7 @@ def Create_Historical_data():
     # ----- !!!!!!  THESE VALUES NEED TO BE CHANGED MANUALLY !!!!!! -----
     # everytime the function is run, otherwise your tables will look like shit
     start_date=datetime.datetime(2019,11,9)
-    end_date=datetime.datetime(2020,1,14)
+    end_date=datetime.datetime(2020,1,29)
     tickers=['ETH-CAD','BTC-CAD','XMR-CAD','XRP-CAD']
     short_name=['ETH', 'BTC', 'XMR', 'XRP']
     long_name=['Ethereum', 'Bitcoin', 'Monero', 'XRP']

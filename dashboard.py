@@ -627,18 +627,18 @@ def update_graph(variation_price, columns):
     )
 
 if __name__ == '__main__':
-    x=datetime.today()
-    y = x.replace(day=x.day, hour=6, minute=0, second=0, microsecond=0) + timedelta(days=1)
-    delta_t=y-x
-    secs=delta_t.total_seconds()
-    t = Timer(secs, db_operations.get_data,)
-    t.start()
-    print('='*50)
-    print(x)
-    print(y)
-    print(delta_t)
-    print(secs)
-    print(t)
-    print('='*50)
+    # x=datetime.today()
+    # y = x.replace(day=x.day, hour=6, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    # delta_t=y-x
+    # secs=delta_t.total_seconds()
+    # t = Timer(secs, db_operations.get_data,)
+    # t.start()
+    # print('='*50)
+    # print(x)
+    # print(y)
+    # print(delta_t)
+    # print(secs)
+    # print(t)
+    # print('='*50)
     while t.is_alive():
         app.run_server(host='0.0.0.0', debug=True)
