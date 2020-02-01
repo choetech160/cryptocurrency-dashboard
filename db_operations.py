@@ -370,7 +370,7 @@ def Create_Historical_data():
     # ----- !!!!!!  THESE VALUES NEED TO BE CHANGED MANUALLY !!!!!! -----
     # everytime the function is run, otherwise your tables will look like shit
     start_date=datetime.datetime(2019,11,9)
-    end_date=datetime.datetime(2020,1,29)
+    end_date=datetime.datetime(2020,2,1)
     tickers=['ETH-CAD','BTC-CAD','XMR-CAD','XRP-CAD']
     short_name=['ETH', 'BTC', 'XMR', 'XRP']
     long_name=['Ethereum', 'Bitcoin', 'Monero', 'XRP']
@@ -408,9 +408,11 @@ def Create_Historical_data():
         i=0
         for day in all_weekdays:
             day=day.strftime("%Y-%m-%d")
-            temp=[day, opening[i]]
-            date_list.append(temp)
-            i=i+1
+            try:
+                temp=[day, opening[i]]
+                date_list.append(temp)
+                i=i+1
+            except: pass
 
         columns=['currency_name_long', 'currency_name_short', 'CAD_price', 'timestamp', 'timestamp_strftime']
         for date,value in date_list:
