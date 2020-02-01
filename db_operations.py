@@ -2,8 +2,6 @@ import sqlite3
 import json
 from requests import Request, Session
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
-import dict_example
-
 import inspect # for debbuging, get code line number
 
 # ONLY USED FOR Create_Historical_data [CAN BE COMMENTED ONCE YOU GOT THE HISTORICAL DATA]
