@@ -23,7 +23,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 long_name_crypto_name_list=['Bitcoin', 'XRP', 'Monero', 'Cardano']
 short_name_crypto_name_list=['BTC','XRP','XMR','ADA']
 #chart data:
-#df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/solar.csv')
+df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/solar.csv')
 graph_colors = ["#9962D1", "#5FDDBD", "#C96652", "#6791D3"]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
