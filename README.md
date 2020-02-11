@@ -97,6 +97,13 @@ import db_operations
 db_operations.write_to_database('purchase_history_table',['currency_name_long', 'currency_name_short','CAD_price_at_purchase', 'quantity_of_currency_acquired', 'acquisition_date'], ['Bitcoin','BTC','800', '8500', 20, 'January 03 2018'])
 ```
 The function `write_to_database` takes the `table name`, the `list of column to modify`, the `values`
+
+4. You might have some errors in `your assets` table. If there is nothing, make sure the dates matches (that today's dates exists in your table). Also, if the `latest price` column does not reflact current prices, you might have to update the `purchase_history_table` to update that column. To do so, do in a terminal :
+```python3
+import db_operations
+db_operations.get_data()
+```
+This should retrieve latest data from `historical_data_table` and update the `purchase_history_table`.
 ## Starting the server
 ```
 python3 dashboard.py
