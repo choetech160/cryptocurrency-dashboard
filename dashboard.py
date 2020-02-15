@@ -456,7 +456,6 @@ def update_output(submit_to_db_button, currency_picker, date,acquisition_price_i
                 if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] UPDATA_OUTPUT [ CURRENCY LIST ]  :",ticker)
                 db_operations.Get_Historical_data(ticker, currency_picker, currency_long_name, date_string,end_date)
 
-
             return ['The purchase of {} {} for {} $ on {} has successfully been added to the database. Please reload the page.'.format(amount_acquired_input, currency_picker, acquisition_price_input, date_string)]
 
     else:
@@ -517,10 +516,40 @@ def render_content(tab):
                 x_dates.append(result)
 
             results=db_operations.query_database('historical_data_table', ['CAD_price'], False, label)
-            price_at_purchase=db_operations.query_database('purchase_history_table', ['quantity_of_currency_acquired'], False, label)
+            qty_acq=db_operations.query_database('purchase_history_table', ['quantity_of_currency_acquired'], False, label)
+            date_acq=db_operations.query_database('purchase_history_table', ['acquisition_date'], False, label)
+            temp_date_acq=[]
+            for date in date_acq:
+                temp_date_acq.append(datetime.strptime(date, '%B %d %Y'))
+            i=0
+            sum=0
+            if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] GET_PRICE_VARIATION [Quantity acquired]: ", qty_acq)
+            if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] GET_PRICE_VARIATION [Date acquired]: ", date_acq)
+
             for result in results:
-                y_value=result*price_at_purchase[0]
+                print(x_dates[i])
+                if datetime.strptime(x_dates[i], '%Y-%m-%d') in temp_date_acq:
+                    if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] GET_PRICE_VARIATION [Date specified]: ", datetime.strptime(x_dates[i], '%Y-%m-%d'))
+                    if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] GET_PRICE_VARIATION [indexes]: ", temp_date_acq)
+                    indexes=[i2 for i2,v in enumerate(temp_date_acq) if v<=datetime.strptime(x_dates[i], '%Y-%m-%d')] # get indexes of date_acq where date of list is larger (past) date qty_acquired
+                    if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] GET_PRICE_VARIATION [indexes]: ", indexes)
+                    if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] GET_PRICE_VARIATION [quantity list]: ", qty_acq)
+                    sum=0
+                    for temp_indexes in indexes:
+                        sum=sum+qty_acq[temp_indexes]
+                        if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] GET_PRICE_VARIATION [Sum]: ", sum)
+                    if db_operations.DEBUG_FLAG is True: print("[",db_operations.lineno(),"] GET_PRICE_VARIATION [Final Sum --> ]: ", sum)
+                if sum==0:
+                    sum=qty_acq[0]
+                y_value=result*sum
+                #y_value=result*qty_acq[0]
                 y_values.append("{0:.2f}".format(y_value))
+                i=i+1
+            print(label)
+            print(len(y_values))
+            print(len(x_dates))
+        for y,x in zip(y_values,x_dates):
+            print("Y: "+str(y)+"|  Date: "+ str(x))
 
         fig = px.line(dict(Currency=label_list, Value=y_values, time=x_dates), x='time', y='Value', color='Currency')
         fig.update_traces(mode='markers+lines')

@@ -7,6 +7,7 @@ import inspect # for debbuging, get code line number
 # ONLY USED FOR Create_Historical_data [CAN BE COMMENTED ONCE YOU GOT THE HISTORICAL DATA]
 import pandas_datareader.data as web
 from datetime import datetime, timedelta
+import datetime
 import pandas as pd
 import API_data
 # ONLY USED FOR Create_Historical_data
@@ -24,7 +25,7 @@ parameters = {
   'convert':API_data.convert
 }
 # Database parameters
-sqlite_file='/Users/home/Desktop/Projets/local_dashboard/database.sqlite'
+sqlite_file='/Users/home/Desktop/Projets/cryptocurrency-dashboard/database.sqlite'
 #sqlite_file='/Users/temp/Desktop/Projects/dashboard/database_demo.sqlite'
 historical_data_table='historical_data_table'
 purchase_history_table='purchase_history_table'
@@ -207,6 +208,7 @@ def get_data():
     #data_dict=dict_example.my_dict["data"]
     # get currency by long name (list)
     currency_list = query_database('purchase_history_table', [cns_column], False, None)
+    currency_list = list(set(currency_list)) #make the list unique
     # all asset in a list
     data=['str','str','str','str', 'str'] #init the list with elements as they might get modified not orderly
     for currency_symbol in currency_list:
@@ -239,15 +241,21 @@ def get_price_variation(variation_period):
     c = conn.cursor()
     # use that to check historical price data
     if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [list]: ",currency_list)
+    unique_coin_list = list(set(currency_list))
+    coin_counter_dict = { i : 0 for i in unique_coin_list }
+    temp_date=None
     for currency_symbol in currency_list:
         if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [SYMBOL]: ", currency_symbol)
         if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [VARIATION PERIOD]: ", variation_period)
         if variation_period == 'all':
+            coin_counter_dict[currency_symbol] = coin_counter_dict[currency_symbol]+1
+            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [dictionnary value]: ", coin_counter_dict)
             variation_period_value=query_database('purchase_history_table',['acquisition_date'], False, currency_symbol) # get date of purchase of specific currency
-            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [variation period]: ", variation_period_value)
+
             date_format_from_db = "%B %d %Y"
             today = datetime.date.today()
-            a = datetime.datetime.strptime(variation_period_value[0], date_format_from_db) #['November 11 2019']
+            a = datetime.datetime.strptime(variation_period_value[coin_counter_dict[currency_symbol]-1], date_format_from_db) #['November 11 2019']
+            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [date selected]: ", a)
             b = datetime.datetime.strptime(str(datetime.date.today()),"%Y-%m-%d")
             delta = (b - a)+timedelta(days=1)  # needed to somehow substract 1 day to get the purchase date appropriatelly. If there are still descrepancies between the tables and the welcome message,
             # this might be the reason
@@ -255,6 +263,7 @@ def get_price_variation(variation_period):
             if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [variation period]: ", variation_period_value)
         else:
             variation_period_value=variation_period
+            coin_counter_dict[currency_symbol] = coin_counter_dict[currency_symbol]+1
 
 
 
@@ -264,10 +273,15 @@ def get_price_variation(variation_period):
         if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [SQLITE COMMAND]: ", command)
         c.execute(command)
         variation_price = c.fetchall()
+        if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [variation price]: ", variation_price)
         try:
-            variation_price=variation_price[0][0]
-            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", variation_price)
-        except:
+            if variation_price != []:
+                variation_price=variation_price[0][0]
+                if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [variation price]: ", variation_price)
+            else:
+                raise ValueError('variation_price is empty')
+
+        except ValueError:
             variation_period_value=query_database('purchase_history_table',['acquisition_date'], False, currency_symbol)
             date_format_from_db = "%B %d %Y"
             today = datetime.date.today()
@@ -277,7 +291,14 @@ def get_price_variation(variation_period):
             variation_period_value="-"+str(delta.days)+" day"
             command="SELECT CAD_price FROM historical_data_table WHERE timestamp_strftime IS strftime('%Y-%m-%d','now', '"+str(variation_period_value)+"') AND currency_name_short LIKE '"+currency_symbol+"'"
             c.execute(command)
+            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND]: ", command)
             variation_price=c.fetchall()
+            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", variation_price)
+            if variation_price == []: # If the query still returns nothing (value diff does not even exist for a single day, then use today's value)
+                command="SELECT CAD_price FROM historical_data_table WHERE timestamp_strftime IS strftime('%Y-%m-%d','now') AND currency_name_short LIKE '"+currency_symbol+"'"
+                c.execute(command)
+                variation_price=c.fetchall()
+                if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", variation_price)
             variation_price=variation_price[0][0]
             if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", variation_price)
 
@@ -303,7 +324,20 @@ def get_price_variation(variation_period):
         if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [SQLITE COMMAND]: ", command)
         c.execute(command)
         qty_acquired = c.fetchall()
-        qty_acquired=qty_acquired[0][0]
+        if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [Coin counter value]: ", coin_counter_dict[currency_symbol])
+        if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [SQLITE COMMAND]: ", len(qty_acquired))
+        if len(qty_acquired) > 1 and coin_counter_dict[currency_symbol] > 1 and variation_period != 'all': #If there are more than one qty acquired and that the counter is on the second value
+            #use second qty qty_acquired
+            qty_acquired=qty_acquired[coin_counter_dict[currency_symbol]-1][0]
+
+        else:
+            qty_acquired=qty_acquired[0][0]
+
+        # Calculate the acquisition date in order to make the table update process more accurate.
+        variation_period_value=query_database('purchase_history_table',['acquisition_date'], False, currency_symbol) # get date of purchase of specific currency
+        if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [variation period]: ", variation_period_value)
+        temp_date=variation_period_value[coin_counter_dict[currency_symbol]-1]
+
         if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", qty_acquired)
         if DEBUG_FLAG is True: print('-'*200)
         if DEBUG_FLAG is True: print("[",lineno(),"] Currency: ",currency_symbol)
@@ -314,7 +348,10 @@ def get_price_variation(variation_period):
         var=(latest_price-variation_price)*qty_acquired
         var='{:,.2f}'.format(var)
         # save each value in purchase_history_table
-        command="UPDATE purchase_history_table SET price_variation = "+str(var)+" WHERE currency_name_short LIKE '"+currency_symbol+"'"
+        if temp_date is not None:
+            command="UPDATE purchase_history_table SET price_variation = "+str(var)+" WHERE currency_name_short LIKE '"+currency_symbol+"' AND acquisition_date LIKE '"+temp_date+"'"
+        else:
+            command="UPDATE purchase_history_table SET price_variation = "+str(var)+" WHERE currency_name_short LIKE '"+currency_symbol+"'"
         if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [SQLITE COMMAND]: ", command)
         c.execute(command)
         conn.commit()
@@ -378,7 +415,7 @@ def Create_Historical_data():
     # ----- !!!!!!  THESE VALUES NEED TO BE CHANGED MANUALLY !!!!!! -----
     # everytime the function is run, otherwise your tables will look like shit
     start_date=datetime.datetime(2019,11,9)
-    end_date=datetime.datetime(2020,2,11)
+    end_date=datetime.datetime(2020,2,14)
     tickers=['ETH-CAD','BTC-CAD','XMR-CAD','XRP-CAD']
     short_name=['ETH', 'BTC', 'XMR', 'XRP']
     long_name=['Ethereum', 'Bitcoin', 'Monero', 'XRP']
