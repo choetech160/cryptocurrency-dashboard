@@ -1,1 +1,4 @@
 .DS_Store
+API_data.py
+__pycache__/
+database.sqlite
