@@ -187,7 +187,7 @@ def total_folio_value():
     print("Value value_purchase: ", value_purchase)
     total_coin=db_operations.query_database('purchase_history_table', ['quantity_of_currency_acquired'], False, None)
     print("Value latest: ", total_coin)
-
+    test=db_operations.query_database('purchase_history_table', ['price_variation'], False, None)
     profit=[value_latest_i - value_purchase_i for value_latest_i, value_purchase_i in zip(value_latest, value_purchase)]
     print("Value profits: ", profit)
     for id, column in enumerate(value_latest):
@@ -201,7 +201,7 @@ def total_folio_value():
     total_profit="{0:.2f}".format(sum(total_profit_list))
     secondline="You have "+str(total_asset)
     if sum(total_profit_list) > 0:
-        finalline="Up "+str(total_profit)
+        finalline="Up "+str(sum(test))
     else:
         total_profit="{0:.2f}".format(-1*sum(total_profit_list))
         finalline="Down "+str(total_profit)

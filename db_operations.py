@@ -326,13 +326,13 @@ def get_price_variation(variation_period):
         qty_acquired = c.fetchall()
         if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [Coin counter value]: ", coin_counter_dict[currency_symbol])
         if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [SQLITE COMMAND]: ", len(qty_acquired))
-        if len(qty_acquired) > 1 and coin_counter_dict[currency_symbol] > 1 and variation_period != 'all': #If there are more than one qty acquired and that the counter is on the second value
+        if len(qty_acquired) > 1 and coin_counter_dict[currency_symbol] > 1: #If there are more than one qty acquired and that the counter is on the second value
             #use second qty qty_acquired
             qty_acquired=qty_acquired[coin_counter_dict[currency_symbol]-1][0]
-
+            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", qty_acquired)
         else:
             qty_acquired=qty_acquired[0][0]
-
+            if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [COMMAND RESULT]: ", qty_acquired)
         # Calculate the acquisition date in order to make the table update process more accurate.
         variation_period_value=query_database('purchase_history_table',['acquisition_date'], False, currency_symbol) # get date of purchase of specific currency
         if DEBUG_FLAG is True: print("[",lineno(),"] GET_PRICE_VARIATION [variation period]: ", variation_period_value)
